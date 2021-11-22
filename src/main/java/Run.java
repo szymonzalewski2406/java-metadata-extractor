@@ -20,27 +20,38 @@ public class Run {
         Scanner scanner = new Scanner(System.in);
         while(true) {
             try {
-                System.out.print("Directory path: ");
+                System.out.print("Path to directory: ");
                 String pathToFile = scanner.nextLine();
+                System.out.println("\n");
                 List<File> filesInFolder = Files.walk(Paths.get(pathToFile))
                         .filter(Files::isRegularFile)
                         .map(Path::toFile)
                         .collect(Collectors.toList());
                 for (File files : filesInFolder) {
-                    Metadata metadata = ImageMetadataReader.readMetadata(files);
-                    ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-                    Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
-                    System.out.println(files.getName()+" ---> "+sdf.format(date));
-                    Path fileToMovePath = Paths.get(String.valueOf(files));
-                    Path targetPath = Paths.get(pathToFile + "/" + sdf.format(date) + ".jpg");
-                    Files.move(fileToMovePath, targetPath);
-                    System.out.println("Name was succesfully changed.");
+                    try {
+                        Metadata metadata = ImageMetadataReader.readMetadata(files);
+                        ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+                        Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+                        if (date != null) {
+                            System.out.println(files.getName() + " ---> " + sdf.format(date));
+                            Path fileToMovePath = Paths.get(String.valueOf(files));
+                            Path targetPath = Paths.get(pathToFile + "/" + sdf.format(date) + ".jpg");
+                            Files.move(fileToMovePath, targetPath);
+                            System.out.println("Name was sucessfully changed.\n");
+                        } else {
+                            System.out.println("Cannot access creation date: " + files.getName());
+                            System.out.println("Name was not changed.\n");
+                        }
+                    }catch (NullPointerException e){
+                        System.out.println("Error: " + files.getName());
+                        System.out.println("Name was not changed.\n");
+                    } catch (ImageProcessingException e){
+                        System.out.println("File format could not be determined.");
+                    }
                 }
                 break;
             } catch (NoSuchFileException e) {
                 System.out.println("Wrong path.");
-            } catch (ImageProcessingException e){
-                e.printStackTrace();
             }
         }
     }
