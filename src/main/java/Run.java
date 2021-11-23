@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class Run {
     public static void main(String[] args) throws IOException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("GMT+1"));//set your current timezone
         Scanner scanner = new Scanner(System.in);
         while(true) {
             try {
@@ -47,6 +48,9 @@ public class Run {
                         System.out.println("Name was not changed.\n");
                     } catch (ImageProcessingException e){
                         System.out.println("File format could not be determined.");
+                    }catch (FileAlreadyExistsException e){
+                        System.out.println("File: "+files.getName()+" already exist.");
+                        System.out.println("Name was not changed.\n");
                     }
                 }
                 break;
